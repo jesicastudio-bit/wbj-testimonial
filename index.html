@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testimonial Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-green: #0a4428;
+            --dark-green: #052616;
+            --light-bg: #ebf0ec;
+            --yellow: #f8c018;
+            --text-dark: #333;
+            --highlight-bg: #eadd96;
+            
+            /* Warna khusus Desain 2 */
+            --d2-bg-dark: #012622;
+            --d2-teal: #3f756b;
+            --d2-lime: #95c11f;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 768px) { body { flex-direction: row; } }
+
+        /* Panel Kontrol */
+        .controls {
+            flex: 1; background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow-y: auto; max-width: 100%;
+        }
+        @media (min-width: 768px) { .controls { max-width: 350px; } }
+
+        .controls h2 { margin-top: 0; color: var(--dark-green); font-size: 20px;}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #555;}
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; box-sizing: border-box; font-size: 14px;}
+        textarea { resize: vertical; height: 120px; line-height: 1.4;}
+        
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        button { width: 100%; padding: 15px; background: var(--primary-green); color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s;}
+        button:hover { background: var(--dark-green); }
+        .btn-pdf { background: #b71c1c; } 
+        .btn-pdf:hover { background: #880e4f; }
+
+        /* Container Preview */
+        .preview-wrapper {
+            flex: 2; display: flex; align-items: center; justify-content: center;
+            background: #e0e0e0; border-radius: 10px; overflow: hidden; position: relative;
+        }
+
+        /* Kanvas Utama */
+        #capture-area {
+            width: 1080px; height: 1080px; position: absolute; transform-origin: center;
+            overflow: hidden; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            background-color: white; /* Default */
+        }
+
+        /* --- OVERRIDES KANVAS STORY MODE (9:16) --- */
+        /* Baris ini sangat penting agar kanvas memanjang ke bawah */
+        #capture-area.story-mode { height: 1920px; }
+
+        /* ========================================= */
+        /* TEMPLATE 1 (SOLID HIJAU)         */
+        /* ========================================= */
+        #template-1 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--primary-green); background-image: url('background.webp'); background-size: cover; background-position: center; }
+        #template-1 .logo { position: absolute; top: 60px; left: 60px; width: 250px; z-index: 3; }
+        #template-1 .title-badge { position: absolute; top: 0; right: 0; background: var(--dark-green); padding: 30px 60px 20px 40px; border-bottom-left-radius: 20px; z-index: 4; }
+        #template-1 .title-badge-top { position: absolute; top: 0; right: 0; width: 450px; height: 15px; background: var(--yellow); z-index: 5;}
+        #template-1 .title-text { color: white; font-size: 42px; font-weight: 400; }
+        #template-1 .title-text strong { font-weight: 700; }
+        #template-1 .doctor-info { position: absolute; top: 250px; left: 60px; color: white; border-left: 8px solid #a3b95a; padding-left: 20px; z-index: 3;}
+        #template-1 .doctor-name { font-size: 46px; font-weight: 700; margin: 0; }
+        #template-1 .doctor-title { font-size: 24px; font-weight: 400; margin: 8px 0 0 0; opacity: 0.9; white-space: nowrap; line-height: 1.4; }
+        #template-1 .story-horizontal-line { display: none; }
+        #template-1 .patient-info { position: absolute; top: 400px; left: 60px; color: white; z-index: 3;}
+        #template-1 .patient-from { font-size: 24px; color: #a3b95a; font-weight: 600; letter-spacing: 2px; margin: 0; }
+        #template-1 .patient-name { font-size: 46px; font-weight: 700; margin: 5px 0 0 0; }
+        #template-1 .doctor-image { position: absolute; bottom: 510px; right: 40px; height: 420px; width: auto; z-index: 1; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));}
+        #template-1 .testimonial-box { position: absolute; bottom: 80px; left: 0; right: 0; height: 500px; background: var(--light-bg); border-top-left-radius: 60px; border-top-right-radius: 60px; padding: 60px; box-sizing: border-box; z-index: 2;}
+        #template-1 .review-source { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; position: relative; z-index: 3; }
+        #template-1 .stars { color: var(--yellow); font-size: 45px; letter-spacing: 5px; line-height: 1;}
+        #template-1 .google-badge { display: flex; align-items: center; gap: 8px; background: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: 700; color: #555; box-shadow: 0 4px 6px rgba(0,0,0,0.05);}
+        #template-1 .google-badge svg { width: 20px; height: 20px; }
+        #template-1 .highlight { color: var(--text-dark); background-color: var(--highlight-bg); padding: 2px 8px; border-radius: 6px;}
+        #template-1 .testi-text-container { height: 220px; position: relative; z-index: 3; width: 90%; display: flex; align-items: flex-start;}
+        #template-1 .testi-text { font-size: 28px; color: var(--text-dark); line-height: 1.5; font-weight: 500; margin: 0; display: block;}
+        #template-1 .quote-mark { position: absolute; bottom: 100px; right: 60px; font-size: 400px; color: white; font-family: Georgia, serif; font-weight: bold; line-height: 0; opacity: 0.8; z-index: 0;}
+        #template-1 .locations-container { position: absolute; bottom: 60px; left: 60px; right: 60px; display: flex; gap: 25px; z-index: 5; justify-content: center;}
+        #template-1 .location-card { background: white; padding: 15px 20px; border-radius: 12px; width: 48%; color: var(--dark-green); box-shadow: 0 10px 20px rgba(0,0,0,0.08); display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 15px; box-sizing: border-box;}
+        #template-1 .loc-top { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
+        #template-1 .pin { fill: #e51c23; width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+        #template-1 .loc-address { margin-bottom: 0; line-height: 1.3; font-weight: 500; font-size: 14px; }
+        #template-1 .loc-separator { width: 2.5px; background-color: #a3b95a; align-self: stretch; margin: 0; min-height: 45px; }
+        #template-1 .loc-contact { margin: 0; font-weight: 700; font-size: 15px; line-height: 1.4; white-space: nowrap; }
+        #template-1 .footer-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: var(--dark-green); color: white; text-align: center; line-height: 40px; font-size: 16px; font-weight: 500; z-index: 5; letter-spacing: 1px;}
+
+        /* Template 1 - Story Mode */
+        #capture-area.story-mode #template-1 .logo { top: 80px; left: 70px; width: 380px; }
+        #capture-area.story-mode #template-1 .title-badge { padding: 40px 60px 30px 50px; border-bottom-left-radius: 30px; }
+        #capture-area.story-mode #template-1 .title-badge-top { width: 500px; height: 20px; }
+        #capture-area.story-mode #template-1 .title-text { font-size: 50px; }
+        #capture-area.story-mode #template-1 .doctor-info { top: 400px; left: 70px; border-left: none; padding-left: 0; z-index: 3;}
+        #capture-area.story-mode #template-1 .doctor-name { font-size: 50px; } 
+        #capture-area.story-mode #template-1 .doctor-title { font-size: 28px; margin-top: 10px; color: #a3b95a; white-space: nowrap; line-height: 1.4; } 
+        #capture-area.story-mode #template-1 .story-horizontal-line { display: block; position: absolute; top: 560px; left: 70px; width: 940px; height: 6px; background-color: #a3b95a; z-index: 4; }
+        #capture-area.story-mode #template-1 .doctor-image { height: 380px; bottom: 1360px; right: 70px; z-index: 2; }
+        #capture-area.story-mode #template-1 .patient-info { top: 640px; left: 70px; z-index: 4;} 
+        #capture-area.story-mode #template-1 .patient-from { font-size: 32px; }
+        #capture-area.story-mode #template-1 .patient-name { font-size: 55px; margin-top: 10px; }
+        #capture-area.story-mode #template-1 .testimonial-box { height: auto; top: 780px; bottom: 80px; padding: 70px 70px; border-top-left-radius: 80px; border-top-right-radius: 80px; }
+        #capture-area.story-mode #template-1 .review-source { margin-bottom: 40px; gap: 25px; }
+        #capture-area.story-mode #template-1 .stars { font-size: 60px; } 
+        #capture-area.story-mode #template-1 .google-badge { font-size: 24px; padding: 12px 25px; border-radius: 40px; } 
+        #capture-area.story-mode #template-1 .google-badge svg { width: 30px; height: 30px; }
+        #capture-area.story-mode #template-1 .testi-text-container { height: 520px; width: 100%; }
+        #capture-area.story-mode #template-1 .quote-mark { bottom: 300px; right: 70px; font-size: 600px; opacity: 0.5;}
+        #capture-area.story-mode #template-1 .locations-container { bottom: 130px; left: 70px; right: 70px; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 25px; }
+        #capture-area.story-mode #template-1 .location-card { padding: 25px 30px; border-radius: 20px; flex-direction: column; align-items: stretch; gap: 0; }
+        #capture-area.story-mode #template-1 .loc-top { gap: 15px; }
+        #capture-area.story-mode #template-1 .pin { width: 36px; height: 36px; margin-top: 5px; } 
+        #capture-area.story-mode #template-1 .loc-address { font-size: 22px; line-height: 1.3; } 
+        #capture-area.story-mode #template-1 .loc-separator { width: 100%; height: 2px; margin: 15px 0; min-height: unset; }
+        #capture-area.story-mode #template-1 .loc-contact { font-size: 22px; line-height: 1.4; white-space: normal; }
+        #capture-area.story-mode #template-1 .footer-bar { height: 60px; line-height: 60px; font-size: 22px; }
+
+
+        /* ========================================= */
+        /* TEMPLATE 2 (DUA KOLOM GELAP)     */
+        /* ========================================= */
+        #template-2 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--d2-bg-dark); background-image: url('background2.webp'); background-size: cover; background-position: center; display: none;}
+        
+        /* D2: Kiri (Box Lengkung) */
+        #template-2 .d2-left-panel { position: absolute; top: 50px; left: 50px; bottom: 50px; width: 350px; border-radius: 40px; display: flex; flex-direction: column; overflow: hidden; z-index: 2; box-shadow: 0 15px 30px rgba(0,0,0,0.3);}
+        #template-2 .d2-top-half { flex: 1.2; background: var(--light-bg); position: relative; }
+        #template-2 .d2-logo { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); width: 220px; }
+        #template-2 .d2-doctor-img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 320px; width: auto; }
+        #template-2 .d2-bottom-half { flex: 0.8; background: var(--d2-teal); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; position: relative;}
+        #template-2 .d2-doctor-name { color: white; font-size: 32px; font-weight: 700; margin: 0; line-height: 1.2;}
+        #template-2 .d2-doctor-title { color: #e0e0e0; font-size: 18px; margin-top: 5px;}
+        #template-2 .d2-divider { width: 3px; height: 100px; background: white; margin: 25px 0; border-radius: 2px;}
+        #template-2 .d2-website { color: white; font-size: 15px; font-weight: 500; letter-spacing: 0.5px; opacity: 0.8;}
+
+        /* D2: Kanan (Konten) */
+        #template-2 .d2-right-content { position: absolute; top: 70px; left: 450px; right: 50px; z-index: 2; }
+        
+        /* position: relative dihapus agar kutip bisa mengambang bebas ke ujung pojok kanvas */
+        #template-2 .d2-header { display: flex; align-items: flex-start; font-size: 55px; color: white; } 
+        
+        #template-2 .d2-title-group { display: flex; flex-direction: row; align-items: baseline; position: relative; z-index: 3; }
+        #template-2 .d2-title-patient { border-bottom: 5px solid var(--yellow); padding-bottom: 5px; margin-right: 15px; }
+        #template-2 .d2-title-testi { font-weight: 700; }
+        
+        /* Tanda Kutip untuk 1:1 (Digeser ekstrem ke kanan atas, margin 5px dari ujung) */
+        #template-2 .d2-quote-icon { position: absolute; right: -45px; top: -75px; font-size: 260px; font-family: 'Arial Black', sans-serif; font-weight: 900; color: var(--d2-lime); line-height: 1; z-index: 1; opacity: 0.9; }
+        
+        /* Bintang dan Logo Google Review (Dikelompokkan menjadi 1 baris) */
+        #template-2 .d2-review-source { display: flex; align-items: center; gap: 20px; margin-top: 50px; margin-bottom: 25px; position: relative; z-index: 3;}
+        #template-2 .d2-stars { color: var(--yellow); font-size: 40px; letter-spacing: 5px; line-height: 1; margin: 0;}
+        #template-2 .d2-google-badge { display: flex; align-items: center; gap: 8px; background: white; padding: 6px 15px; border-radius: 20px; font-size: 14px; font-weight: 700; color: #555; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        #template-2 .d2-google-badge svg { width: 20px; height: 20px; }
+        
+        #template-2 .d2-testi-container { height: 420px; display: flex; align-items: flex-start; position: relative; z-index: 3;}
+        #template-2 .d2-testi-text { font-size: 32px; color: white; line-height: 1.5; font-weight: 400; }
+        #template-2 .highlight { color: var(--yellow); font-weight: 600; background: transparent; padding: 0;} /* D2 Highlight = Teks Kuning */
+        
+        #template-2 .d2-patient-name { color: var(--yellow); font-size: 36px; font-weight: 700; margin-top: 10px; position: relative; z-index: 3;}
+
+        /* D2: Lokasi */
+        #template-2 .locations-container { position: absolute; bottom: 50px; left: 450px; right: 50px; display: flex; gap: 20px; z-index: 5;}
+        #template-2 .location-card { 
+            background: linear-gradient(to bottom, #f2f7f6, #dcebe9); 
+            padding: 18px 20px; border-radius: 12px; width: 48%; color: var(--d2-bg-dark); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; align-items: flex-start; gap: 6px; box-sizing: border-box;
+        }
+        #template-2 .loc-top { display: flex; align-items: flex-start; gap: 10px; width: 100%; }
+        #template-2 .pin { fill: #e51c23; width: 24px; height: 24px; flex-shrink: 0; margin-top: 0px; }
+        #template-2 .loc-address { margin-bottom: 0; line-height: 1.3; font-weight: 500; font-size: 15px; }
+        #template-2 .loc-separator { display: none; } /* Garis dihilangkan untuk Desain 2 */
+        #template-2 .loc-contact { margin: 0 0 0 34px; font-weight: 700; font-size: 16px; line-height: 1.4; white-space: nowrap; }
+
+        /* Template 2 - Story Mode */
+        #capture-area.story-mode #template-2 .d2-left-panel { top: 80px; left: 80px; bottom: 80px; width: 450px; border-radius: 50px; }
+        #capture-area.story-mode #template-2 .d2-logo { top: 60px; width: 300px; }
+        #capture-area.story-mode #template-2 .d2-doctor-img { height: 480px; }
+        #capture-area.story-mode #template-2 .d2-bottom-half { padding: 50px; }
+        #capture-area.story-mode #template-2 .d2-doctor-name { font-size: 45px; }
+        #capture-area.story-mode #template-2 .d2-doctor-title { font-size: 26px; margin-top: 10px;}
+        #capture-area.story-mode #template-2 .d2-divider { height: 180px; margin: 40px 0; width: 4px;}
+        #capture-area.story-mode #template-2 .d2-website { font-size: 20px; }
+
+        #capture-area.story-mode #template-2 .d2-right-content { top: 120px; left: 580px; right: 80px; }
+        #capture-area.story-mode #template-2 .d2-header { font-size: 75px; }
+        #capture-area.story-mode #template-2 .d2-title-group { flex-direction: column; align-items: flex-start; }
+        #capture-area.story-mode #template-2 .d2-title-patient { border-bottom: 8px solid var(--yellow); padding-bottom: 5px; margin-right: 0; margin-bottom: 15px; }
+        
+        /* Tanda Kutip untuk Story Mode (Tetap dekat dengan teks seperti kemarin) */
+        #capture-area.story-mode #template-2 .d2-quote-icon { top: -60px; right: -20px; font-size: 280px; z-index: 1; }
+        
+        /* Bintang dan Logo Google Review Story Mode */
+        #capture-area.story-mode #template-2 .d2-review-source { margin-top: 60px; margin-bottom: 30px; gap: 25px;}
+        #capture-area.story-mode #template-2 .d2-stars { font-size: 60px; margin: 0; }
+        #capture-area.story-mode #template-2 .d2-google-badge { font-size: 24px; padding: 12px 25px; border-radius: 40px; }
+        #capture-area.story-mode #template-2 .d2-google-badge svg { width: 30px; height: 30px; }
+        
+        #capture-area.story-mode #template-2 .d2-testi-container { height: 800px; }
+        #capture-area.story-mode #template-2 .d2-patient-name { font-size: 40px; margin-top: 30px; }
+
+        #capture-area.story-mode #template-2 .locations-container { bottom: 80px; left: 580px; right: 80px; flex-direction: column; gap: 25px; }
+        #capture-area.story-mode #template-2 .location-card { width: 100%; padding: 25px 30px; border-radius: 20px; gap: 10px; }
+        #capture-area.story-mode #template-2 .loc-top { gap: 15px; }
+        #capture-area.story-mode #template-2 .pin { width: 36px; height: 36px; margin-top: 2px; }
+        #capture-area.story-mode #template-2 .loc-address { font-size: 22px; }
+        #capture-area.story-mode #template-2 .loc-contact { font-size: 22px; margin-left: 51px; }
+        #capture-area.story-mode #template-2 .loc-separator { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Panel Kiri (Input Data) -->
+    <div class="controls">
+        <h2>Atur Testimonial</h2>
+
+        <div class="form-group">
+            <label>Pilih Desain Variasi</label>
+            <select id="input-design" onchange="changeDesign()">
+                <option value="1">Desain 1 (Solid Hijau)</option>
+                <option value="2">Desain 2 (Dua Kolom Gelap)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Ukuran Kanvas</label>
+            <select id="input-size" onchange="changeSize()">
+                <option value="feed">Instagram Feed (1:1)</option>
+                <option value="story" selected>Instagram Story / Reels (9:16)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Pilih Dokter</label>
+            <select id="input-doctor" onchange="updatePreview()"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Pasien</label>
+            <input type="text" id="input-patient" value="Kirsten Bentrup" oninput="updatePreview()">
+        </div>
+
+        <div class="form-group">
+            <label>Isi Testimonial (Apit kata dengan **bintang** untuk Highlight)</label>
+            <textarea id="input-testi" oninput="updatePreview()">Dr. Berg has been **very helpful** in giving an honest opinion of what options I have in regard to knee pain. He has been very empathetic to my fear of shots! Appointments are **fast and effective**, and the staff are helpful and kind! I've received much more genuine and caring service than from other corporate health care providers in the area.</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Lokasi 1</label>
+            <select id="input-loc1" onchange="updatePreview()"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Lokasi 2 (Opsional)</label>
+            <select id="input-loc2" onchange="updatePreview()"></select>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="btn-group">
+            <button onclick="downloadImage()" id="download-btn">Download JPG</button>
+            <button onclick="downloadPDF()" id="download-pdf-btn" class="btn-pdf">Download PDF</button>
+        </div>
+    </div>
+
+    <!-- Panel Kanan (Preview Visual) -->
+    <div class="preview-wrapper" id="preview-wrapper">
+        <div id="capture-area" class="story-mode">
+            
+            <!-- ========================= TEMPLATE 1 ========================= -->
+            <div id="template-1">
+                <div class="bg-pattern"></div>
+                <img src="logo2.webp" alt="Logo Wisconsin Bone & Joint" class="logo display-logo">
+                <div class="title-badge-top"></div>
+                <div class="title-badge">
+                    <div class="title-text">Patient <strong>Testimonial</strong></div>
+                </div>
+                <div class="doctor-info">
+                    <h1 class="doctor-name display-doctor-name">Kenneth C. Berg, MD</h1>
+                    <h2 class="doctor-title display-doctor-title">General Orthopedics</h2>
+                </div>
+                <div class="story-horizontal-line"></div>
+                <div class="patient-info">
+                    <h3 class="patient-from">from</h3>
+                    <h1 class="patient-name display-patient-name">Kirsten Bentrup</h1>
+                </div>
+                <img src="" class="doctor-image display-doctor-img" alt="Doctor">
+                <div class="testimonial-box">
+                    <div class="review-source">
+                        <div class="stars">★★★★★</div>
+                        <div class="google-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                            </svg>
+                            Google Review
+                        </div>
+                    </div>
+                    <div class="testi-text-container">
+                        <div class="testi-text t1-display-testi"></div>
+                    </div>
+                    <div class="quote-mark">”</div>
+                </div>
+                <div class="locations-container">
+                    <div class="location-card" id="t1-card-loc1">
+                        <div class="loc-top">
+                            <svg class="pin" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            <div class="loc-address" id="t1-display-loc1-address"></div>
+                        </div>
+                        <div class="loc-separator"></div>
+                        <p class="loc-contact" id="t1-display-loc1-contact"></p>
+                    </div>
+                    <div class="location-card" id="t1-card-loc2">
+                        <div class="loc-top">
+                            <svg class="pin" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            <div class="loc-address" id="t1-display-loc2-address"></div>
+                        </div>
+                        <div class="loc-separator"></div>
+                        <p class="loc-contact" id="t1-display-loc2-contact"></p>
+                    </div>
+                </div>
+                <div class="footer-bar">www.wiscboneandjoint.com</div>
+            </div>
+
+            <!-- ========================= TEMPLATE 2 ========================= -->
+            <div id="template-2">
+                
+                <!-- Kiri: Info Dokter -->
+                <div class="d2-left-panel">
+                    <div class="d2-top-half">
+                        <img src="logo3.webp" class="d2-logo display-logo-d2" alt="Logo">
+                        <img src="" class="d2-doctor-img display-doctor-img" alt="Doctor">
+                    </div>
+                    <div class="d2-bottom-half">
+                        <div class="d2-doctor-name display-doctor-name"></div>
+                        <div class="d2-doctor-title display-doctor-title"></div>
+                        <div class="d2-divider"></div>
+                        <div class="d2-website">www.wiscboneandjoint.com</div>
+                    </div>
+                </div>
+
+                <!-- Kanan: Konten Review -->
+                <div class="d2-right-content">
+                    <div class="d2-header">
+                        <div class="d2-title-group">
+                            <span class="d2-title-patient">Patient</span>
+                            <span class="d2-title-testi">Testimonial</span>
+                        </div>
+                        <div class="d2-quote-icon">”</div>
+                    </div>
+                    
+                    <!-- Bintang & Google Badge Desain 2 -->
+                    <div class="d2-review-source">
+                        <div class="d2-stars">★★★★★</div>
+                        <div class="d2-google-badge">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                            </svg>
+                            Google Review
+                        </div>
+                    </div>
+
+                    <div class="d2-testi-container">
+                        <div class="d2-testi-text t2-display-testi"></div>
+                    </div>
+                    <div class="d2-patient-name display-patient-name"></div>
+                </div>
+
+                <!-- Kanan Bawah: Lokasi -->
+                <div class="locations-container">
+                    <div class="location-card" id="t2-card-loc1">
+                        <div class="loc-top">
+                            <svg class="pin" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            <div class="loc-address" id="t2-display-loc1-address"></div>
+                        </div>
+                        <div class="loc-separator"></div>
+                        <p class="loc-contact" id="t2-display-loc1-contact"></p>
+                    </div>
+                    <div class="location-card" id="t2-card-loc2">
+                        <div class="loc-top">
+                            <svg class="pin" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            <div class="loc-address" id="t2-display-loc2-address"></div>
+                        </div>
+                        <div class="loc-separator"></div>
+                        <p class="loc-contact" id="t2-display-loc2-contact"></p>
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // --- DATABASE DUMMY ---
+        const doctorsData = [
+            { id: "jake_bauwens", name: "Jake Bauwens, MD", title: "General Orthopedics & Sports Medicine", image: "jake-bauwens.webp" },
+            { id: "jesse_bauwens", name: "Jesse Bauwens, MD", title: "Orthopaedic Surgeon", image: "jesse-bauwens.webp" },
+            { id: "berg", name: "Kenneth C. Berg, M.D.", title: "General Orthopedics", image: "kenneth-c-berg.webp" },
+            { id: "crimmins", name: "Michael G. Crimmins, M.D.", title: "Interventional Pain Specialist", image: "michael-g-crimmins.webp" },
+            { id: "donatello", name: "Steven Donatello, MD", title: "Pain Management", image: "steven-donatello.webp" },
+            { id: "ferguson", name: "Anthony Ferguson, MD", title: "Foot And Ankle, Sports Medicine", image: "anthony-ferguson.webp" },
+            { id: "huizenga", name: "Thomas Huizenga, MD", title: "General Orthopedics", image: "thomas-huizenga.webp" },
+            { id: "kornreich", name: "David Kornreich, DO", title: "Orthopaedic Surgeon", image: "david-kornreich.webp" },
+            { id: "kroner_j", name: "John T. Kroner, M.D.", title: "General Orthopedics", image: "john-t-kroner.webp" },
+            { id: "kroner_jm", name: "Joseph M. Kroner, M.D.", title: "General Orthopedics", image: "joseph-m-kroner.webp" },
+            { id: "maciolek", name: "Lawrence Maciolek, MD", title: "Spine and Scoliosis", image: "lawrence-maciolek.webp" },
+            { id: "middleton", name: "Donald Middleton, MD", title: "Orthopaedic Surgeon", image: "donald-middleton.webp" },
+            { id: "robbins", name: "Stephen Robbins, MD", title: "Spine Specialist", image: "stephen-robbins.webp" },
+            { id: "stephany", name: "Jeff Stephany, MD", title: "Orthopaedic Surgeon", image: "jeff-stephany.webp" },
+            { id: "swenson", name: "Todd M. Swenson, M.D.", title: "Sports Medicine Orthopaedic", image: "todd-m-swenson.webp" }
+        ];
+
+        const locationsData = [
+            { id: "none", name: "-- Tidak Ada --", addressFeed: "", addressStory: "", phone: "", fax: "" },
+            { id: "wauwatosa", name: "Wauwatosa", addressFeed: "2500 N. Mayfair Road<br>Suite 500<br>Wauwatosa, WI 53226", addressStory: "2500 N. Mayfair Road<br>Suite 500<br>Wauwatosa, WI 53226", phone: "414-257-2525", fax: "414-257-1772" },
+            { id: "glendale_130", name: "Glendale (Suite 130)", addressFeed: "525 W. River Woods Pkwy<br>Suite 130<br>Glendale, WI 53212", addressStory: "525 W. River Woods Pkwy<br>Suite 130<br>Glendale, WI 53212", phone: "414-961-0304", fax: "414-961-2061" },
+            { id: "glendale_100", name: "Glendale (Suite 100)", addressFeed: "525 W. River Woods Pkwy<br>Suite 100<br>Glendale, WI 53212", addressStory: "525 W. River Woods Pkwy<br>Suite 100<br>Glendale, WI 53212", phone: "414-332-6262", fax: "414-332-0422" },
+            { id: "cedarburg", name: "Cedarburg", addressFeed: "W62N208 Washington Ave.<br>Cedarburg, WI 53012", addressStory: "W62N208 Washington Ave.<br>Cedarburg, WI 53012", phone: "262-376-7480", fax: "262-375-4700" }
+        ];
+
+        function initApp() {
+            const doctorSelect = document.getElementById('input-doctor');
+            doctorsData.forEach(doc => {
+                let option = document.createElement('option');
+                option.value = doc.id; option.textContent = doc.name;
+                doctorSelect.appendChild(option);
+            });
+
+            const loc1Select = document.getElementById('input-loc1');
+            const loc2Select = document.getElementById('input-loc2');
+            locationsData.forEach(loc => {
+                let opt1 = document.createElement('option'); opt1.value = loc.id; opt1.textContent = loc.name; loc1Select.appendChild(opt1);
+                let opt2 = document.createElement('option'); opt2.value = loc.id; opt2.textContent = loc.name; loc2Select.appendChild(opt2);
+            });
+
+            loc1Select.value = "wauwatosa";
+            loc2Select.value = "glendale_130";
+
+            changeDesign();
+            changeSize(); 
+        }
+
+        function changeDesign() {
+            const design = document.getElementById('input-design').value;
+            if (design === '1') {
+                document.getElementById('template-1').style.display = 'block';
+                document.getElementById('template-2').style.display = 'none';
+            } else {
+                document.getElementById('template-1').style.display = 'none';
+                document.getElementById('template-2').style.display = 'block';
+            }
+            updatePreview();
+        }
+
+        function changeSize() {
+            const captureArea = document.getElementById('capture-area');
+            const size = document.getElementById('input-size').value;
+            
+            document.querySelectorAll('.display-logo').forEach(el => {
+                el.src = (size === 'story') ? 'logo2.webp' : 'logo.webp';
+            });
+            
+            // D2 Logo selalu gunakan logo3.webp
+            document.querySelectorAll('.display-logo-d2').forEach(el => { el.src = 'logo3.webp'; });
+
+            if (size === 'story') { captureArea.classList.add('story-mode'); } 
+            else { captureArea.classList.remove('story-mode'); }
+            
+            scalePreview(); 
+            updatePreview(); 
+        }
+
+        // --- UPDATE SEMUA KONTEN PREVIEW ---
+        function updatePreview() {
+            const pName = document.getElementById('input-patient').value;
+            document.querySelectorAll('.display-patient-name').forEach(el => el.textContent = pName);
+            
+            // Format Teks Testimonial
+            const rawText = document.getElementById('input-testi').value;
+            const formattedText = rawText.replace(/\*\*(.*?)\*\*/g, '<span class="highlight">$1</span>');
+            document.querySelector('.t1-display-testi').innerHTML = formattedText;
+            document.querySelector('.t2-display-testi').innerHTML = formattedText;
+            
+            // Update Dokter
+            const selectedDocId = document.getElementById('input-doctor').value;
+            const doctor = doctorsData.find(d => d.id === selectedDocId);
+            if (doctor) {
+                document.querySelectorAll('.display-doctor-name').forEach(el => el.textContent = doctor.name);
+                document.querySelectorAll('.display-doctor-title').forEach(el => el.textContent = doctor.title);
+                document.querySelectorAll('.display-doctor-img').forEach(el => { el.src = doctor.image; el.style.display = 'block'; });
+            }
+
+            // Fungsi Update Lokasi ke dua Template
+            const loc1 = locationsData.find(l => l.id === document.getElementById('input-loc1').value);
+            const loc2 = locationsData.find(l => l.id === document.getElementById('input-loc2').value);
+            const isStoryMode = document.getElementById('capture-area').classList.contains('story-mode');
+            
+            function renderLoc(prefix, locNum, dataObj) {
+                const card = document.getElementById(`${prefix}-card-loc${locNum}`);
+                if (dataObj && dataObj.id !== "none") {
+                    card.style.display = 'flex';
+                    const displayAddress = isStoryMode ? dataObj.addressStory : dataObj.addressFeed;
+                    document.getElementById(`${prefix}-display-loc${locNum}-address`).innerHTML = displayAddress;
+                    document.getElementById(`${prefix}-display-loc${locNum}-contact`).innerHTML = `P: ${dataObj.phone}<br>F: ${dataObj.fax}`;
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+            renderLoc('t1', 1, loc1); renderLoc('t1', 2, loc2);
+            renderLoc('t2', 1, loc1); renderLoc('t2', 2, loc2);
+
+            adjustFontSize();
+        }
+
+        // --- ADAPTIVE FONT SIZE ---
+        function adjustFontSize() {
+            const isStoryMode = document.getElementById('capture-area').classList.contains('story-mode');
+            const design = document.getElementById('input-design').value;
+            
+            let textEl, maxHeight, fontSize;
+
+            if (design === '1') {
+                textEl = document.querySelector('.t1-display-testi');
+                maxHeight = isStoryMode ? 520 : 220;
+                fontSize = isStoryMode ? 48 : 28;
+            } else {
+                textEl = document.querySelector('.t2-display-testi');
+                maxHeight = isStoryMode ? 800 : 420;
+                fontSize = isStoryMode ? 55 : 32;
+            }
+            
+            textEl.style.fontSize = fontSize + 'px';
+            textEl.style.lineHeight = '1.5';
+
+            while (textEl.offsetHeight > maxHeight && fontSize > 14) {
+                fontSize -= 1;
+                textEl.style.fontSize = fontSize + 'px';
+                if (fontSize <= (isStoryMode ? 40 : 22)) textEl.style.lineHeight = '1.4';
+                if (fontSize <= (isStoryMode ? 30 : 16)) textEl.style.lineHeight = '1.3';
+            }
+        }
+
+        function scalePreview() {
+            const wrapper = document.getElementById('preview-wrapper');
+            const captureArea = document.getElementById('capture-area');
+            const isStoryMode = captureArea.classList.contains('story-mode');
+            
+            const baseWidth = 1080;
+            const baseHeight = isStoryMode ? 1920 : 1080;
+            const padding = 40; 
+            const scaleX = (wrapper.clientWidth - padding) / baseWidth;
+            const scaleY = (wrapper.clientHeight - padding) / baseHeight;
+            const scale = Math.min(scaleX, scaleY);
+            
+            captureArea.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', scalePreview);
+
+        // --- EXPORT FUNGSI ---
+        function exportAction(type) {
+            const captureArea = document.getElementById('capture-area');
+            const btnId = type === 'jpg' ? 'download-btn' : 'download-pdf-btn';
+            const btn = document.getElementById(btnId);
+            const isStoryMode = captureArea.classList.contains('story-mode');
+            const currentTransform = captureArea.style.transform;
+            
+            captureArea.style.transform = 'scale(1)';
+            btn.textContent = "Memproses...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                html2canvas(captureArea, { scale: 1, useCORS: true, backgroundColor: "#012622" })
+                .then(canvas => {
+                    captureArea.style.transform = currentTransform;
+                    btn.textContent = type === 'jpg' ? "Download JPG" : "Download PDF";
+                    btn.disabled = false;
+
+                    const fileName = `Testimonial_${document.getElementById('input-patient').value.replace(/\s+/g, '_')}`;
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+                    if (type === 'jpg') {
+                        const link = document.createElement('a');
+                        link.download = fileName + '.jpg';
+                        link.href = imgData;
+                        link.click();
+                    } else {
+                        const { jsPDF } = window.jspdf;
+                        const pdfWidth = 1080; const pdfHeight = isStoryMode ? 1920 : 1080;
+                        const doc = new jsPDF({ orientation: 'portrait', unit: 'px', format: [pdfWidth, pdfHeight] });
+                        doc.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                        doc.save(fileName + '.pdf');
+                    }
+                }).catch(err => {
+                    console.error("Error: ", err);
+                    alert("Export gagal. Pastikan membuka via Live Server jika di lokal.");
+                    captureArea.style.transform = currentTransform;
+                    btn.textContent = type === 'jpg' ? "Download JPG" : "Download PDF";
+                    btn.disabled = false;
+                });
+            }, 300);
+        }
+
+        function downloadImage() { exportAction('jpg'); }
+        function downloadPDF() { exportAction('pdf'); }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
