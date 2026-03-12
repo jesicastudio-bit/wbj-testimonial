@@ -75,7 +75,7 @@
         /* ========================================= */
         /* TEMPLATE 1 (SOLID HIJAU)         */
         /* ========================================= */
-        #template-1 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--primary-green); background-image: url('background.webp'); background-size: cover; background-position: center; }
+        #template-1 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--primary-green); background-image: url('asset/background.webp'); background-size: cover; background-position: center; }
         #template-1 .logo { position: absolute; top: 60px; left: 60px; width: 250px; z-index: 3; }
         #template-1 .title-badge { position: absolute; top: 0; right: 0; background: var(--dark-green); padding: 30px 60px 20px 40px; border-bottom-left-radius: 20px; z-index: 4; }
         #template-1 .title-badge-top { position: absolute; top: 0; right: 0; width: 450px; height: 15px; background: var(--yellow); z-index: 5;}
@@ -140,7 +140,7 @@
         /* ========================================= */
         /* TEMPLATE 2 (DUA KOLOM GELAP)     */
         /* ========================================= */
-        #template-2 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--d2-bg-dark); background-image: url('background2.webp'); background-size: cover; background-position: center; display: none;}
+        #template-2 { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background-color: var(--d2-bg-dark); background-image: url('asset/background2.webp'); background-size: cover; background-position: center; display: none;}
         
         /* D2: Kiri (Box Lengkung) */
         #template-2 .d2-left-panel { position: absolute; top: 50px; left: 50px; bottom: 50px; width: 350px; border-radius: 40px; display: flex; flex-direction: column; overflow: hidden; z-index: 2; box-shadow: 0 15px 30px rgba(0,0,0,0.3);}
@@ -290,7 +290,7 @@
             <!-- ========================= TEMPLATE 1 ========================= -->
             <div id="template-1">
                 <div class="bg-pattern"></div>
-                <img src="logo2.webp" alt="Logo Wisconsin Bone & Joint" class="logo display-logo">
+                <img src="asset/logo2.webp" alt="Logo Wisconsin Bone & Joint" class="logo display-logo">
                 <div class="title-badge-top"></div>
                 <div class="title-badge">
                     <div class="title-text">Patient <strong>Testimonial</strong></div>
@@ -350,7 +350,7 @@
                 <!-- Kiri: Info Dokter -->
                 <div class="d2-left-panel">
                     <div class="d2-top-half">
-                        <img src="logo3.webp" class="d2-logo display-logo-d2" alt="Logo">
+                        <img src="asset/logo3.webp" class="d2-logo display-logo-d2" alt="Logo">
                         <img src="" class="d2-doctor-img display-doctor-img" alt="Doctor">
                     </div>
                     <div class="d2-bottom-half">
@@ -419,21 +419,21 @@
     <script>
         // --- DATABASE DUMMY ---
         const doctorsData = [
-            { id: "jake_bauwens", name: "Jake Bauwens, MD", title: "General Orthopedics & Sports Medicine", image: "jake-bauwens.webp" },
-            { id: "jesse_bauwens", name: "Jesse Bauwens, MD", title: "Orthopaedic Surgeon", image: "jesse-bauwens.webp" },
-            { id: "berg", name: "Kenneth C. Berg, M.D.", title: "General Orthopedics", image: "kenneth-c-berg.webp" },
-            { id: "crimmins", name: "Michael G. Crimmins, M.D.", title: "Interventional Pain Specialist", image: "michael-g-crimmins.webp" },
-            { id: "donatello", name: "Steven Donatello, MD", title: "Pain Management", image: "steven-donatello.webp" },
-            { id: "ferguson", name: "Anthony Ferguson, MD", title: "Foot And Ankle, Sports Medicine", image: "anthony-ferguson.webp" },
-            { id: "huizenga", name: "Thomas Huizenga, MD", title: "General Orthopedics", image: "thomas-huizenga.webp" },
-            { id: "kornreich", name: "David Kornreich, DO", title: "Orthopaedic Surgeon", image: "david-kornreich.webp" },
-            { id: "kroner_j", name: "John T. Kroner, M.D.", title: "General Orthopedics", image: "john-t-kroner.webp" },
-            { id: "kroner_jm", name: "Joseph M. Kroner, M.D.", title: "General Orthopedics", image: "joseph-m-kroner.webp" },
-            { id: "maciolek", name: "Lawrence Maciolek, MD", title: "Spine and Scoliosis", image: "lawrence-maciolek.webp" },
-            { id: "middleton", name: "Donald Middleton, MD", title: "Orthopaedic Surgeon", image: "donald-middleton.webp" },
-            { id: "robbins", name: "Stephen Robbins, MD", title: "Spine Specialist", image: "stephen-robbins.webp" },
-            { id: "stephany", name: "Jeff Stephany, MD", title: "Orthopaedic Surgeon", image: "jeff-stephany.webp" },
-            { id: "swenson", name: "Todd M. Swenson, M.D.", title: "Sports Medicine Orthopaedic", image: "todd-m-swenson.webp" }
+            { id: "jake_bauwens", name: "Jake Bauwens, MD", title: "General Orthopedics & Sports Medicine", image: "asset/jake-bauwens.webp" },
+            { id: "jesse_bauwens", name: "Jesse Bauwens, MD", title: "Orthopaedic Surgeon", image: "asset/jesse-bauwens.webp" },
+            { id: "berg", name: "Kenneth C. Berg, M.D.", title: "General Orthopedics", image: "asset/kenneth-c-berg.webp" },
+            { id: "crimmins", name: "Michael G. Crimmins, M.D.", title: "Interventional Pain Specialist", image: "asset/michael-g-crimmins.webp" },
+            { id: "donatello", name: "Steven Donatello, MD", title: "Pain Management", image: "asset/steven-donatello.webp" },
+            { id: "ferguson", name: "Anthony Ferguson, MD", title: "Foot And Ankle, Sports Medicine", image: "asset/anthony-ferguson.webp" },
+            { id: "huizenga", name: "Thomas Huizenga, MD", title: "General Orthopedics", image: "asset/thomas-huizenga.webp" },
+            { id: "kornreich", name: "David Kornreich, DO", title: "Orthopaedic Surgeon", image: "asset/david-kornreich.webp" },
+            { id: "kroner_j", name: "John T. Kroner, M.D.", title: "General Orthopedics", image: "asset/john-t-kroner.webp" },
+            { id: "kroner_jm", name: "Joseph M. Kroner, M.D.", title: "General Orthopedics", image: "asset/joseph-m-kroner.webp" },
+            { id: "maciolek", name: "Lawrence Maciolek, MD", title: "Spine and Scoliosis", image: "asset/lawrence-maciolek.webp" },
+            { id: "middleton", name: "Donald Middleton, MD", title: "Orthopaedic Surgeon", image: "asset/donald-middleton.webp" },
+            { id: "robbins", name: "Stephen Robbins, MD", title: "Spine Specialist", image: "asset/stephen-robbins.webp" },
+            { id: "stephany", name: "Jeff Stephany, MD", title: "Orthopaedic Surgeon", image: "asset/jeff-stephany.webp" },
+            { id: "swenson", name: "Todd M. Swenson, M.D.", title: "Sports Medicine Orthopaedic", image: "asset/todd-m-swenson.webp" }
         ];
 
         const locationsData = [
@@ -483,11 +483,11 @@
             const size = document.getElementById('input-size').value;
             
             document.querySelectorAll('.display-logo').forEach(el => {
-                el.src = (size === 'story') ? 'logo2.webp' : 'logo.webp';
+                el.src = (size === 'story') ? 'asset/logo2.webp' : 'asset/logo.webp';
             });
             
             // D2 Logo selalu gunakan logo3.webp
-            document.querySelectorAll('.display-logo-d2').forEach(el => { el.src = 'logo3.webp'; });
+            document.querySelectorAll('.display-logo-d2').forEach(el => { el.src = 'asset/logo3.webp'; });
 
             if (size === 'story') { captureArea.classList.add('story-mode'); } 
             else { captureArea.classList.remove('story-mode'); }
